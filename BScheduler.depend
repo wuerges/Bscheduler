@@ -1,0 +1,56 @@
+# depslib dependency file v1.0
+1504635663 source:v:\home\dropbox\profissional\software\pessoal\windows\geneticalgorithms\bscheduler\main.cpp
+	"BScheduler.h"
+
+1504639239 v:\home\dropbox\profissional\software\pessoal\windows\geneticalgorithms\bscheduler\include\bscheduler.h
+	"BSchedulerDefaults.h"
+	"BList.h"
+	"BCommandLine.h"
+	"BFile.h"
+
+1497150899 v:\home\dropbox\profissional\software\pessoal\windows\geneticalgorithms\bscheduler\include\bschedulerdefaults.h
+	"BCommandLine.h"
+	"BFunctions.h"
+	"BFile.h"
+	"BSort.h"
+	"BList.h"
+	<time.h>
+	<stdio.h>
+
+1394141362 v:\home\dropbox\profissional\software\pessoal\windows\basiclibrary\include\bcommandline.h
+	<string.h>
+	<ctype.h>
+	<stdlib.h>
+	<stdio.h>
+
+1396819767 v:\home\dropbox\profissional\software\pessoal\windows\basiclibrary\include\bfunctions.h
+	<string.h>
+	<math.h>
+	<stdio.h>
+
+1395692018 v:\home\dropbox\profissional\software\pessoal\windows\basiclibrary\include\bfile.h
+	<direct.h>
+	<unistd.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<string.h>
+	<stdio.h>
+	"BFunctions.h"
+	"BState.h"
+
+1327875441 v:\home\dropbox\profissional\software\pessoal\windows\basiclibrary\include\bstate.h
+	<string.h>
+	<limits.h>
+	<stdio.h>
+
+1496781525 v:\home\dropbox\profissional\software\pessoal\windows\basiclibrary\include\bsort.h
+
+1397345198 v:\home\dropbox\profissional\software\pessoal\windows\basiclibrary\include\blist.h
+	<string.h>
+	<stdio.h>
+	<stdarg.h>
+	"BFunctions.h"
+
+1504736491 source:v:\home\dropbox\profissional\software\pessoal\windows\geneticalgorithms\bscheduler\src\bscheduler.cpp
+	"BScheduler.h"
+
