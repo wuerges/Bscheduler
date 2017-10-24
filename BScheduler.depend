@@ -2,11 +2,15 @@
 1504635663 source:v:\home\dropbox\profissional\software\pessoal\windows\geneticalgorithms\bscheduler\main.cpp
 	"BScheduler.h"
 
+1504736491 r.h"
+
 1504639239 v:\home\dropbox\profissional\software\pessoal\windows\geneticalgorithms\bscheduler\include\bscheduler.h
 	"BSchedulerDefaults.h"
 	"BList.h"
 	"BCommandLine.h"
 	"BFile.h"
+
+1395692018 
 
 1497150899 v:\home\dropbox\profissional\software\pessoal\windows\geneticalgorithms\bscheduler\include\bschedulerdefaults.h
 	"BCommandLine.h"
@@ -51,6 +55,63 @@
 	<stdarg.h>
 	"BFunctions.h"
 
+1397345198 s.h"
+
 1504736491 source:v:\home\dropbox\profissional\software\pessoal\windows\geneticalgorithms\bscheduler\src\bscheduler.cpp
+	"BScheduler.h"
+
+1507061279 source:/home/josebins/Programas/Bscheduler/main.cpp
+	"BScheduler.h"
+
+1508863087 /home/josebins/Programas/Bscheduler/include/BScheduler.h
+	"BSchedulerDefaults.h"
+	"BList.h"
+	"BCommandLine.h"
+	"BFile.h"
+
+1508353665 /home/josebins/Programas/Bscheduler/include/BSchedulerDefaults.h
+	"BCommandLine.h"
+	"BFunctions.h"
+	"BFile.h"
+	"BSort.h"
+	"BList.h"
+	<time.h>
+	<stdio.h>
+
+1507064171 /home/josebins/Programas/BasicLibrary/include/BCommandLine.h
+	<string.h>
+	<ctype.h>
+	<stdlib.h>
+	<stdio.h>
+
+1507061163 /home/josebins/Programas/BasicLibrary/include/BFunctions.h
+	<string.h>
+	<math.h>
+	<stdio.h>
+
+1507061163 /home/josebins/Programas/BasicLibrary/include/BFile.h
+	<direct.h>
+	<unistd.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<string.h>
+	<stdio.h>
+	"BFunctions.h"
+	"BState.h"
+
+1507061163 /home/josebins/Programas/BasicLibrary/include/BState.h
+	<string.h>
+	<limits.h>
+	<stdio.h>
+
+1507061163 /home/josebins/Programas/BasicLibrary/include/BSort.h
+
+1507309701 /home/josebins/Programas/BasicLibrary/include/BList.h
+	<string.h>
+	<stdio.h>
+	<stdarg.h>
+	"BFunctions.h"
+
+1508864362 source:/home/josebins/Programas/Bscheduler/src/BScheduler.cpp
 	"BScheduler.h"
 

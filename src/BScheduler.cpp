@@ -2,6 +2,17 @@
 
 #include "BScheduler.h"
 
+char dayname[7][24] = { "Segunda", "Ter&ccedil;a", "Quarta", "Quinta", "Sexta", "S&aacute;bado", "Domingo"};
+
+int id = 0;
+
+char * getDayName(int d) {
+    if (d >= 0 && d <= 6)
+        return dayname[d];
+    return "Unknown";
+}
+
+
 int getIndexNthOk(bool *ok, int sz, int n){
     if (n <0 || n >=sz)
         return -1;
@@ -9,11 +20,12 @@ int getIndexNthOk(bool *ok, int sz, int n){
     int i;
 
     for(i=0; i < sz;i++)
-        if (ok[i])
+        if (ok[i]) {
             if (n == 0)
                 return i;
             else
                 n--;
+        }
 
     return -1;
 }
@@ -94,29 +106,27 @@ bool memberCharVector(char * v, int n, char* * p) {
             return true;
     return false;
 }
-bool includeIntVector(int &n1, int &n2, int *&p, int v) {
-    int i;
-
+bool includeIntVector(int &n1, int &n2, int *&p, int v, int sz) {
     int * aux;
 
     if (!p) {
-        p = new int[DEFAULMAXNUMBEROFROOMS];
+        p = new int[sz];
         p[0] = v;
         n1++;
-        n2 = DEFAULMAXNUMBEROFROOMS;
+        n2 = sz;
         return true;
     } else if (n1 == n2) {
         aux = new int[n2];
         for (int i=0; i < n2; i++)
             aux[i] = p[i];
-        delete [] p;
-        p = new int[n2+DEFAULMAXNUMBEROFROOMS];
+        deleteVector(p);
+        p = new int[n2+sz];
         for (int i=0; i < n2; i++)
             p[i] = aux[i];
-        delete [] aux;
+        deleteVector(aux);
         p[n2] = v;
         n1++;
-        n2 = n2+DEFAULMAXNUMBEROFROOMS;
+        n2 = n2+sz;
         return true;
     } else {
         p[n1] = v;
@@ -126,8 +136,6 @@ bool includeIntVector(int &n1, int &n2, int *&p, int v) {
 
 }
 bool includeCharVector(int &n1, int &n2, char * *&p, char * v) {
-    int i;
-
     char ** aux;
 
     if (!p) {
@@ -143,7 +151,7 @@ bool includeCharVector(int &n1, int &n2, char * *&p, char * v) {
             aux[i] = p[i];
         aux[n2]=new char[strlen(v)+1];
         strcpy(aux[n2],v);
-        delete [] p;
+        deleteVector(p);
         p = aux;
         n1++;
         n2 = n2+DEFAULTNUMBEROFSEMESTERS;
@@ -164,7 +172,7 @@ bool deletePeriodVector(int n, Period * p) {
 
     for (i=0; i < n; i++)
         delete p[i].slots;
-    delete [] p;
+    deleteVector(p);
     return true;
 }
 bool deleteShiftVector(int n, Shift * p) {
@@ -198,11 +206,11 @@ bool deleteProfessorVector(int n, Professor *p) {
         return false;
 
     for (i=0; i < n; i++) {
-        delete [] p[i].name;
-        delete [] p[i].disc;
-        delete [] p[i].toavoid;
+        deleteVector(p[i].name);
+        deleteVector(p[i].disc);
+        deleteVector(p[i].toavoid);
     }
-    delete [] p;
+    deleteVector(p);
     return true;
 }
 bool deleteSemScheduleVector(int n, SemSchedule * p) {
@@ -212,10 +220,10 @@ bool deleteSemScheduleVector(int n, SemSchedule * p) {
         return false;
 
     for (i=0; i < n; i++){
-        delete []  p[i].title;
+        deleteVector(p[i].title);
         deleteRoomScheduleVector(p[i].nrooms, p[i].roomavail);
     }
-    delete [] p;
+    deleteVector(p);
     return true;
 }
 bool deleteDiscPartVector(int n, DiscPart * p) {
@@ -225,9 +233,9 @@ bool deleteDiscPartVector(int n, DiscPart * p) {
         return false;
 
     for (i=0; i < n; i++){
-        delete p[i].profs;
+        deleteVector(p[i].profs);
     }
-    delete [] p;
+    deleteVector(p);
     return true;
 }
 bool deleteSubjectVector(int n, Subject * p) {
@@ -239,7 +247,7 @@ bool deleteSubjectVector(int n, Subject * p) {
     for (i=0; i < n; i++){
         deleteDiscPartVector(p[i].npart,p[i].part);
     }
-    delete [] p;
+    deleteVector(p);
     return true;
 }
 bool deleteSlotVector(int n, Slot * p) {
@@ -249,8 +257,8 @@ bool deleteSlotVector(int n, Slot * p) {
         return false;
 
     for (i=0; i < n; i++)
-        delete [] p[i].profs;
-    delete [] p;
+        deleteVector(p[i].profs);
+    deleteVector(p);
     return true;
 }
 GAProblemDefinition::GAProblemDefinition(FILE* f1, FILE* f2): nline(0), nchar(0), schedsz(0), ndayweek(0), nshifts(0),
@@ -264,7 +272,7 @@ GAProblemDefinition::~GAProblemDefinition(){
     if (shif)
         deleteShiftVector(nshifts,shif);
     if (rooms)
-        delete [] rooms;
+        deleteVector(rooms);
     deleteProfessorVector(nprofs, prof);
     if (semavail)
         deleteSemScheduleVector(nsem,semavail);
@@ -338,8 +346,11 @@ SubjCredit * GAProblemDefinition::inicializeSubjCredit(){
         sc[i].cod = i;
         sc[i].np = subj[i].npart;
         sc[i].used = new int[subj[i].npart];
-        for(j=0; j < subj[i].npart; j++)
+        sc[i].nas = new int[subj[i].npart];
+        for(j=0; j < subj[i].npart; j++) {
             sc[i].used[j] =false;
+            sc[i].nas[j] =0;
+        }
     }
 
 #if DEBUG_MODE == 1
@@ -436,7 +447,7 @@ Slot * GAProblemDefinition::cloneScheduleModel() {
 
     Slot * aux = new Slot[tablesz];
 
-    int i,j;
+    int i;
 
     for(i=0; i < tablesz; i++) {
         aux[i].tpused = sched[i].tpused;
@@ -466,8 +477,6 @@ int GAProblemDefinition::getProfessorCode(char *namep) {
         if (strcmp(namep,prof[i].name)==0)
             return i;
 
-    fprintf(stderr,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    fprintf(stderr,"ERRO >> Could not find professor name %s !\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",namep);
     return -1;
 }
 char *  GAProblemDefinition::getProfessorName(int code) {
@@ -557,7 +566,7 @@ int GAProblemDefinition::getRoomCode(int n) {
             return i;
 
    fprintf(stderr,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-   fprintf(stderr,"ERRO >> Could not find room code %s !\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",n);
+   fprintf(stderr,"ERRO >> Could not find room code %d !\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",n);
    return -1;
 }
 int  GAProblemDefinition::getRoomNumber(int code) {
@@ -606,7 +615,7 @@ bool GAProblemDefinition::cleanBuffer() {
     }
 }
 
-bool GAProblemDefinition::readInt(int & num) {
+bool GAProblemDefinition::readInt(int & num, char * name, bool error) {
 
     cleanBuffer();
     char number[DEFAULTNUMBERSIZE+1];
@@ -621,11 +630,26 @@ bool GAProblemDefinition::readInt(int & num) {
             number[i] = '\0';
             if (i==0)  {
                 fprintf(stderr,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-                fprintf(stderr,"ERROR: Could not read Int value!\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+                if (error) {
+                    if (name == NULL)
+                        fprintf(stderr,"ERROR: Could not read Int value!\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+                    else
+                        fprintf(stderr,"ERROR: Could not read Int value for %s!\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n", name);
+                    getchar();
+                    exit(EXIT_FAILURE);
+                } else {
+                    if (name == NULL)
+                        fprintf(stderr,"WARNING: Could not read Int value for!\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+                    else
+                        fprintf(stderr,"WARNING: Could not read Int value for %s!\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n", name);
+                    return false;
+                }
             }
         }
     }
     num = atoi(number);
+
+    return true;
 
 }
 bool GAProblemDefinition::readFloat(float & num) {
@@ -638,8 +662,8 @@ bool GAProblemDefinition::readFloat(float & num) {
     bool dot = false;
     for(i=0; i < DEFAULTNUMBERSIZE && ok; i++){
         number[i] = getc(infile);
-        if (!isdigit(number[i]))
-            if (!number[i] == '.' || dot) {
+        if (!isdigit(number[i])) {
+            if (number[i] != '.' || dot) {
                 ok = false;
                 ungetc(number[i],infile);
                 number[i] = '\0';
@@ -648,8 +672,11 @@ bool GAProblemDefinition::readFloat(float & num) {
                     fprintf(stderr,"ERROR: Could not read float value!\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
                 }
             } else dot = true;
+        }
     }
     num = atof(number);
+
+    return true;
 
 }
 bool GAProblemDefinition::readString(char * & str) {
@@ -659,6 +686,7 @@ bool GAProblemDefinition::readString(char * & str) {
     fscanf(infile,"%s",aux);
     str = new char[strlen(aux)+1];
     strcpy(str,aux);
+    return true;
 }
 bool GAProblemDefinition::read() {
 
@@ -672,30 +700,39 @@ bool GAProblemDefinition::read() {
 
     int naux = 0;
 
-    readInt(ndayweek);
-    readInt(nshifts);
+    char error[128];
+
+    sprintf(error, "Number of day of the week");
+    readInt(ndayweek, error);
+    sprintf(error, "Number of Shifts");
+    readInt(nshifts,error);
     shif = new Shift[nshifts];
     schedsz = 0;
     for(i=0; i <  nshifts; i++) {
         readString(aux);
         shif[i].name = new char[strlen(aux)+1];
         strcpy(shif[i].name, aux);
-        readInt(shif[i].np);
+        sprintf(error, "Number of Periods for shift %d", i);
+        readInt(shif[i].np, error);
         schedsz += shif[i].np;
         shif[i].per = new Period[shif[i].np];
         for(j=0; j <  shif[i].np; j++) {
-            readInt(shif[i].per[j].sz);
-            readInt(shif[i].per[j].np);
+            sprintf(error, "Periods %d size %d", i);
+            readInt(shif[i].per[j].sz, error);
+            sprintf(error, "Periods %d number of Slots", i);
+            readInt(shif[i].per[j].np, error);
             shif[i].per[j].slots = new int[shif[i].per[j].np];
-            for(k=0; k < shif[i].per[j].np; k++)
-                readInt(shif[i].per[j].slots[k]);
+            for(k=0; k < shif[i].per[j].np; k++) {
+              sprintf(error, "Periods %d Slot %d", i,j);
+              readInt(shif[i].per[j].slots[k], error);
+            }
         }
     }
     schedsz = schedsz * ndayweek;
 
-    readInt(nprofs);
-
-	prof = new Professor[nprofs];
+    sprintf(error, "Number of Professors");
+    readInt(nprofs,error);
+    prof = new Professor[nprofs];
 
 	for (i=0; i < nprofs; i++) {
         prof[i].toavoid = new int[schedsz];
@@ -708,21 +745,25 @@ bool GAProblemDefinition::read() {
         for (j=0; j < schedsz; j++)
             prof[i].toavoid[j] = DEFAULTVALUEFORNEUTRALSCHEDULE;
 		readString(prof[i].name);
-		readInt(n);
-		prof[i].nta = n;
+        sprintf(error, "Number of Schedules for Professor %d",i);
+        readInt(n,error);
+        prof[i].nta = n;
         for (j=0; j < n; j++) {
-            readInt(s);
+            sprintf(error, "Schedule %d for Professor %d",j,i);
+            readInt(s,error);
             prof[i].toavoid[s] = DEFAULTVALUEFORAVOIDSCHEDULE;
         }
     }
 
-	readInt(nsem);
+    sprintf(error, "Number of semesters");
+    readInt(nsem,error);
 
 	semavail = new SemSchedule [nsem];
 
 	for (i=0; i < nsem; i++) {
  		readString( semavail[i].title);
- 		readInt( semavail[i].nrooms);
+        sprintf(error, "Number of rooms for semester %d", i);
+        readInt( semavail[i].nrooms, error);
  		semavail[i].roomavail = new RoomSchedule[semavail[i].nrooms];
  		for(j=0; j < DEFAULTMAXNUMBEROFHOURSBYSLOT; j++){
             semavail[i].slotavail[j]=0;
@@ -732,45 +773,56 @@ bool GAProblemDefinition::read() {
             semavail[i].roomavail[k].sched = new int[schedsz];
             for (j=0; j < schedsz; j++)
                 semavail[i].roomavail[k].sched[j] = DEFAULTVALUEFORFORBIDSCHEDULE;
-            readInt(r);
+            sprintf(error, "Room %d for semester %d", j, i);
+            readInt(r, error);
             if (!memberIntVector(r, nrooms, rooms))
-                includeIntVector(nrooms,naux,rooms,r);
+                includeIntVector(nrooms,naux,rooms,r,DEFAULMAXNUMBEROFROOMS);
             semavail[i].roomavail[k].room = getRoomCode(r);
-            readInt(n);
+            sprintf(error, "Number of Schedules prefered for semester %d room %d", i, r);
+            readInt(n,error);
             for (j=0; j < n; j++) {
-                readInt( s);
+                sprintf(error, "Schedule prefered %d for semester %d room %d", j, i, r);
+                readInt( s, error);
                 semavail[i].roomavail[k].sched[s] = DEFAULTVALUEFORPREFEREDSCHEDULE;
                 semavail[i].slotavail[getSemesterSlotSize(s) -1]++;
             }
-            readInt(n);
+            sprintf(error, "Number of Schedules prefered for semester %d room %d", i, r);
+            readInt(n,error);
             for (j=0; j < n; j++) {
-                readInt( s);
+                sprintf(error, "Schedule neutral %d for semester %d room %d", j, i, r);
+                readInt( s, error);
                 semavail[i].roomavail[k].sched[s] = DEFAULTVALUEFORNEUTRALSCHEDULE;
             }
         }
     }
 
-	readInt( nsub);
+    sprintf(error, "Number of Subjects");
+    readInt( nsub, error);
 
 	subj = new Subject[nsub];
 
     nsubpart = 0;
 	for (i=0; i < nsub; i++) {
  		readString( subj[i].title);
- 		readInt( subj[i].cred);
+        sprintf(error, "Number of Credits for Subject %d", i);
+		readInt( subj[i].cred, error);
  		readString(aux);
  		subj[i].sem = getSemesterCode(aux);
- 		readInt( subj[i].npart);
+        sprintf(error, "Number of Parts for Subject %d", i);
+ 		readInt( subj[i].npart,error);
  		nsubpart+= subj[i].npart;
         subj[i].part = new DiscPart [subj[i].npart];
         for (k=0; k < subj[i].npart; k++) {
-            readInt( subj[i].part[k].cred);
+            sprintf(error, "Number of Credits for Part %d of Subject %d", k, i);
+            readInt( subj[i].part[k].cred, error);
             semavail[subj[i].sem].slotreq[subj[i].part[k].cred-1]++;
-            readInt( subj[i].part[k].nprofs);
+            sprintf(error, "Number of Professors for Part %d of Subject %d", k, i);
+            readInt( subj[i].part[k].nprofs, error);
             subj[i].part[k].profs = new int[subj[i].part[k].nprofs];
             for (j=0; j < subj[i].part[k].nprofs; j++) {
                 readString(aux);
                 subj[i].part[k].profs[j] = getProfessorCode(aux);
+                subj[i].part[k].profs[j];
                 prof[subj[i].part[k].profs[j]].disc[prof[subj[i].part[k].profs[j]].ndp].cod = i;
                 prof[subj[i].part[k].profs[j]].disc[prof[subj[i].part[k].profs[j]].ndp].part = k;
                 prof[subj[i].part[k].profs[j]].ndp++;
@@ -779,7 +831,8 @@ bool GAProblemDefinition::read() {
         }
     }
 
-    readInt(nw);
+    sprintf(error, "Number of Weights");
+    readInt(nw, error);
     weights = new float[nw];
     for (i=0; i < nw; i++)
         readFloat(weights[i]);
@@ -796,7 +849,6 @@ bool GAProblemDefinition::read() {
 
     sched = new Slot[tablesz];
 
-    int x=0;
     for(i=0; i <  tablesz; i++) {
         sched[i].tpused = false;
         sched[i].sz = 0;
@@ -853,7 +905,7 @@ void GAProblemDefinition::printSubjectData(int n){
     for (i=0; i < subj[n].npart; i++) {
         fprintf(logfile,"DiscPart #%d cred = %d profs= %d ",i,
                 subj[n].part[i].cred, subj[n].part[i].nprofs);
-        for (int j=0; j < subj[n].part[i].nprofs; j++)
+        for (j=0; j < subj[n].part[i].nprofs; j++)
             fprintf(logfile,"%s ",getProfessorName(subj[n].part[i].profs[j]));
     }
     fprintf(logfile,"\n");
@@ -873,7 +925,7 @@ void GAProblemDefinition::printSemesterData(int n){
             semavail[n].slotavail[3], semavail[n].slotavail[4], semavail[n].slotreq[0],
             semavail[n].slotreq[1], semavail[n].slotreq[2], semavail[n].slotreq[3],
             semavail[n].slotreq[4], semavail[n].nrooms);
-    for (int i=0; i < semavail[n].nrooms; i++) {
+    for (i=0; i < semavail[n].nrooms; i++) {
             fprintf(logfile,"Room %d : %d\n", i, semavail[n].roomavail[i].room);
             fprintf(logfile,"Tabela Horarios\n");
             printSchedule(logfile,semavail[n].roomavail[i].sched);
@@ -908,9 +960,9 @@ void GAProblemDefinition::printSchedule(FILE *f, int *sched){
 
     int i,j,k;
 
-    for (int i=0; i < 3; i++) {
-        for (int j=0; j < 2; j++) {
-            for (int k=0; k < 5; k++) {
+    for (i=0; i < 3; i++) {
+        for (j=0; j < 2; j++) {
+            for (k=0; k < 5; k++) {
                 switch (sched[i*10+k*2+j]) {
                 case DEFAULTVALUEFORFORBIDSCHEDULE: fprintf(f,"%c", DEFAULTVALUEFORFORBIDSCHEDULEMARK);
                         break;
@@ -988,11 +1040,12 @@ bool Chromosome::fillChromossome() {
     while (!ok) {
         ok = true;
         for (i=0; i < nsubpart; i++) {
-            su = selecionaSubject();
-            sc = selecionaSchedule(su);
-            if (sc == -1)
-                sc = swapSchedule(su);
-            if (sc == -1) {
+            resetAvailableSubjectSlots();
+            if (!getBusiestSubjectPart(su)) {
+                ok = false;
+                break;
+            };
+            if (!selecionaSlot(su,sc) && !swapSlot(su,sc)) {
                 ok = false;
                 break;
             };
@@ -1081,6 +1134,54 @@ bool Chromosome::unmarkSubjectAsUsed(Part su){
 #endif // DEBUG_MODE
     return true;
 };
+bool  Chromosome::getBusiestSubjectPart(Part &sp){
+#if DEBUG_MODE == 1
+    fprintf(stderr,">>>>> Entering getBusiestSubjectPart: Parameters:\n");
+#endif // DEBUG_MODE
+
+    int i,j,k;
+
+    int minslots;
+
+    Part * su = new Part[pd->getNumberDiscPartsOfSubjects()];
+
+    minslots = chromsz;
+
+    k=0;
+    for(i=0; i < pd->getNumberSubjects(); i++)
+        for (j=0; j < scred[i].np; j++){
+            if (!scred[i].used[j]) {
+                printf("disc=%d part=%d slots=%d\n", scred[i].cod, j, scred[i].nas[j]);
+               if (scred[i].nas[j] == 0)
+        {          printf("não achou slot para disc=%d part=%d\n", scred[i].cod, j);
+                   return  false;
+                   }
+                if (minslots >= scred[i].nas[j]) {
+                    if (minslots > scred[i].nas[j])
+                        k=0;
+                    su[k].cod = scred[i].cod;
+                    su[k].part = j;
+                    minslots = scred[i].nas[j];
+                    k++;
+                }
+            }
+    }
+
+    if (k > 0) {
+        i = randomValue(0,k-1);
+        sp.cod = su[i].cod;
+        sp.part = su[i].part;
+        deleteVector(su);
+    } else
+        return false;
+
+    fprintf(stderr,"<<<<< Leaving getBusiestSubjectPart: cod=%d part=%d Result:true\n", sp.cod, sp.part);
+#if DEBUG_MODE == 1
+    fprintf(stderr,"<<<<< Leaving getBusiestSubjectPart: cod=%d part=%d Result:true\n", sp.cod, sp.part);
+#endif // DEBUG_MODE
+    return true;
+
+}
 int Chromosome::getBusiestProfessor(){
     int i;
 
@@ -1101,11 +1202,12 @@ int Chromosome::getBusiestProfessor(){
 
 //    printf("nummax=%d maxcred = %d\n", nummax, maxcred);
     for(i=0; i < np; i++) {
-        if (pcred[i].crednok == maxcred)
+        if (pcred[i].crednok == maxcred) {
             if (n == 1)
                return i;
             else
                n--;
+        }
     }
 
     fprintf(stderr,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -1121,6 +1223,7 @@ Part Chromosome::selecionaSubject(){
 
     int p;
 
+
     p = getBusiestProfessor();
 
 //    printf("%s\n", pd->getProfessorName(p));
@@ -1129,7 +1232,17 @@ Part Chromosome::selecionaSubject(){
 //        printf("disc[%d]=%d - used[%d]=%d\n", j, pd->getProfessorSubject(p,j).cod, j, pcred[p].used[j]);
 //    }
     int i = getUnusedDisc(pcred[p].np, pcred[p].used);
-    Part aux = pd->getProfessorSubject(p,i);
+
+    Part aux;
+
+    aux.cod = -1;
+    aux.part = -1;
+
+    if (i == -1)
+        return aux;
+
+
+    aux = pd->getProfessorSubject(p,i);
 
 #if DEBUG_MODE == 1
     fprintf(stderr,"<<<<< Leaving selecionaSubject: Result: Cod = %d Part = %d\n", aux.cod, aux.part);
@@ -1156,8 +1269,9 @@ int Chromosome::getUnusedDisc(int n, int * used){
 
     fprintf(stderr,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
     fprintf(stderr,"ERRO >> Could not find Unused Disc for professor!\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    getchar();
-    exit(EXIT_FAILURE);
+    //getchar();
+    //exit(EXIT_FAILURE);
+    return -1;
 }
 Chromosome::~Chromosome() {
 #if DEBUG_MODE == 1
@@ -1182,8 +1296,6 @@ void Chromosome::deleteChrom() {
 
 	if (chrom == NULL)
 		return;
-
-    int i;
 
     deleteSlotVector(chromsz,chrom);
 	chrom = NULL;
@@ -1271,7 +1383,7 @@ int * Chromosome::getAvailableSlots(Part su, int &ns){
                  !chrom[r*schedsz+j ].tpused)
                  aux[ns++] = r*schedsz+j;
     }
-    delete [] sched;
+    deleteVector(sched);
 
 #if DEBUG_MODE == 1
     fprintf(stderr,"<<<<< Leaving getAvailableSlots: Result: n=%d\n",ns);
@@ -1305,7 +1417,7 @@ int * Chromosome::getUsedSlots(Part su, int &ns){
                  chrom[r*schedsz+j ].tpused)
                   aux[ns++] = r*schedsz+j;
     }
-    delete [] sched;
+    deleteVector(sched);
 
 #if DEBUG_MODE == 1
     fprintf(stderr,"<<<<< Leaving getUsedSlots: Result: n=%d\n",ns);
@@ -1452,8 +1564,8 @@ bool Chromosome::testSubjectSize(int slot, int cod, int p){
     Part su;
     su.cod = cod;
     su.part = p;
-    int aux1 = pd->getSlotSize(slot % schedsz);
-    int aux2 = pd->getSubjectPartCred(su);
+//    int aux1 = pd->getSlotSize(slot % schedsz);
+//    int aux2 = pd->getSubjectPartCred(su);
     if (pd->getSlotSize(slot % schedsz) != pd->getSubjectPartCred(su))
             return false;
 
@@ -1502,9 +1614,34 @@ bool Chromosome::testSchedule(int s, Part su){
 #endif // DEBUG_MODE
     return true;
 }
-int Chromosome::selecionaSchedule(Part su){
+void Chromosome::resetAvailableSubjectSlots(){
 #if DEBUG_MODE == 1
-    fprintf(stderr,">>>>> Entering selecionaSchedule: Parameters: cod = %d part=%d\n", su.cod,su.part);
+    fprintf(stderr,">>>>> Entering resetAvailableSubjectSlots: \n");
+#endif // DEBUG_MODE
+
+    int i,j,n;
+
+    int * slots;
+    Part p;
+
+    for(i=0; i < pd->getNumberSubjects(); i++) {
+        for (j=0; j < scred[i].np; j++) {
+            p.cod = scred[i].cod;
+            p.part = j;
+            slots = getAvailableSlots(p, n);
+            scred[i].nas[j] = n;
+            deleteVector(slots);
+        }
+
+    }
+#if DEBUG_MODE == 1
+    fprintf(stderr,"<<<<< Leaving resetAvailableSubjectSlots: \n");
+#endif // DEBUG_MODE
+}
+
+bool Chromosome::selecionaSlot(Part su, int &slot){
+#if DEBUG_MODE == 1
+    fprintf(stderr,">>>>> Entering selecionaSlot: Parameters: cod = %d part=%d\n", su.cod,su.part);
 #endif // DEBUG_MODE
 
     int aux;
@@ -1516,7 +1653,7 @@ int Chromosome::selecionaSchedule(Part su){
 
     while (n > 0 && !ok) {
             aux = randomValue(0,n-1);
-            if (aux >= n){
+            if (aux >= n) {
                 fprintf(stderr,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
                 fprintf(stderr,"ERROR: In random Generation!\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
                 exit(EXIT_FAILURE);
@@ -1530,20 +1667,22 @@ int Chromosome::selecionaSchedule(Part su){
     }
 
 
-    int ret = slots[aux];
+    slot = slots[aux];
 
-    delete [] slots;
+    deleteVector(slots);
 
-    if (!ok) return -1;
+    if (!ok) return false;;
 
+
+    fprintf(stderr,"<<<<< Leaving selecionaSlot: slot=%d Result: true\n",slot);
 #if DEBUG_MODE == 1
-    fprintf(stderr,"<<<<< Leaving selecionaSchedule: Result: slot=%d\n",ret);
+    fprintf(stderr,"<<<<< Leaving selecionaSlot: slot=%d Result: true\n",slot);
 #endif // DEBUG_MODE
-     return ret;
+     return true;
 };
 bool * Chromosome::testSwap(int * slots, int n1, Part su, int &n2){
 #if DEBUG_MODE == 1
-    fprintf(stderr,">>>>> Entering testSwap: Parameters: slots=%p n=%d cod=%d part = %d\n", slots, n', su1.cod, su1.part);
+    fprintf(stderr,">>>>> Entering testSwap: Parameters: slots=%p n=%d cod=%d part = %d\n", slots, n, su1.cod, su1.part);
 #endif // DEBUG_MODE
 
     n2=0;
@@ -1566,7 +1705,7 @@ bool * Chromosome::testSwap(int * slots, int n1, Part su, int &n2){
 };
 bool * Chromosome::testSwapExclude(int * slots, int n1, Part su, int ex, int &n2){
 #if DEBUG_MODE == 1
-    fprintf(stderr,">>>>> Entering testSwapExclude: Parameters: slots=%p n=%d cod=%d part = %d exc=%d\n", slots, n', su1.cod, su1.part,ex);
+    fprintf(stderr,">>>>> Entering testSwapExclude: Parameters: slots=%p n=%d cod=%d part = %d exc=%d\n", slots, n, su1.cod, su1.part,ex);
 #endif // DEBUG_MODE
 
     n2=0;
@@ -1587,17 +1726,15 @@ bool * Chromosome::testSwapExclude(int * slots, int n1, Part su, int ex, int &n2
 #endif // DEBUG_MODE
     return ok;
 };
-int Chromosome::swapSchedule(Part &su1){
+bool Chromosome::swapSlot(Part &su1, int &slot){
 #if DEBUG_MODE == 1
-    fprintf(stderr,">>>>> Entering swapSchedule: Parameters: cod=%d part = %d\n", su1.cod, su1.part);
+    fprintf(stderr,">>>>> Entering swapSlot: Parameters: cod=%d part = %d\n", su1.cod, su1.part);
 #endif // DEBUG_MODE
 
 
     fprintf(stderr,">>>>> trocando %s/%d\n", pd->getSubjectTitle(su1.cod), su1.part);
 
     Part su2,su3;
-
-    print();
 
     int i, nu,ns,na,nt,nc,nl;
     int * usedsl = getUsedSlots(su1, nu);
@@ -1611,9 +1748,9 @@ int Chromosome::swapSchedule(Part &su1){
         printf("sourcok[%d] = %d\n", x, sourcok[x]);
 
     if (ns == 0) {
-        delete [] usedsl;
-        delete [] sourcok;
-        return -1;
+        deleteVector(usedsl);
+        deleteVector(sourcok);
+        return false;
     }
 
     nc = ns;
@@ -1621,8 +1758,8 @@ int Chromosome::swapSchedule(Part &su1){
     for (i=0;i<nu;i++)
         copyok[i]=sourcok[i];
 
-    bool * targok,
-         * linkok;
+    bool * targok = NULL,
+         * linkok = NULL;
 
     int * availsl = getAvailableSlots(su1, na);
 
@@ -1649,7 +1786,7 @@ int Chromosome::swapSchedule(Part &su1){
             fprintf(stderr,"2 >>>>> Feito\n");
             break;
         }
-        delete [] targok;
+        deleteVector(targok);
         sourcok[ind1] = false;
         ns--;
     }
@@ -1681,30 +1818,159 @@ int Chromosome::swapSchedule(Part &su1){
                     fprintf(stderr,"5 >>>>> Feito\n");
                     break;
                 }
-                delete [] targok;
+                deleteVector(targok);
                 linkok[ind3]=false;
                 nl--;
             }
-            delete [] linkok;
+            deleteVector(linkok);
             sourcok[ind1] = false;
             ns--;
         }
     }
 
-    delete [] targok;
-    delete [] sourcok;
-    delete [] usedsl;
-    delete [] availsl;
+    deleteVector(targok);
+    deleteVector(sourcok);
+    deleteVector(usedsl);
+    deleteVector(availsl);
 
-    if (target != -1)  {
-        su1.cod = su2.cod;
-        su1.part = su2.part;
-    }
+    slot = target;
+
+    if (target == -1)
+        return false;
+
+    su1.cod = su2.cod;
+    su1.part = su2.part;
+
+
+    fprintf(stderr,"<<<<< Leaving swapSlot: slot=%d Result: true\n",slot);
 
 #if DEBUG_MODE == 1
-    fprintf(stderr,"<<<<< Leaving swapSchedule: Result: slot=%d\n",target);
+    fprintf(stderr,"<<<<< Leaving swapSlot: slot=%d Result: true\n",slot);
 #endif // DEBUG_MODE
-    return target;
+    return true;
+};
+bool Chromosome::swaptoEmptySlot(Part &su1, int &slot){
+#if DEBUG_MODE == 1
+    fprintf(stderr,">>>>> Entering swaptoEmptySlot: Parameters: cod=%d part = %d\n", su1.cod, su1.part);
+#endif // DEBUG_MODE
+
+
+    fprintf(stderr,">>>>> trocando por slot vazio\n");
+
+    Part su2,su3;
+
+    int i, nu,ns,na,nt,nc,nl;
+    int * usedsl = getUsedSlots(su1, nu);
+
+    for (int x=0; x < nu; x++)
+        printf("usedsl[%d] = %d\n", x, usedsl[x]);
+
+    bool * sourcok = testSwap(usedsl,nu,su1,ns);
+
+    for (int x=0; x < nu; x++)
+        printf("sourcok[%d] = %d\n", x, sourcok[x]);
+
+    if (ns == 0) {
+        deleteVector(usedsl);
+        deleteVector(sourcok);
+        return false;
+    }
+
+    nc = ns;
+    bool * copyok = new bool [nu];
+    for (i=0;i<nu;i++)
+        copyok[i]=sourcok[i];
+
+    bool * targok = NULL,
+         * linkok = NULL;
+
+    int * availsl = getAvailableSlots(su1, na);
+
+    for (int x=0; x < na; x++)
+        printf("availsl[%d] = %d\n", x, availsl[x]);
+
+    int ind1, ind2, ind3;
+
+    int source, target, link;
+    target = -1;
+
+    while(ns > 0) {
+        ind1 = getIndexNthOk(sourcok,nu,randomValue(0,ns-1));
+        source = usedsl[ind1];
+        su2.cod = chrom[source].codisc;
+        su2.part = chrom[source].partdisc;
+        fprintf(stderr,"1 >>>>> por %s/%d\n", pd->getSubjectTitle(su2.cod), su2.part);
+        targok = testSwap(availsl,na,su2,nt);
+        if (nt > 0) {
+            ind2 = getIndexNthOk(targok,na,randomValue(0,nt-1));
+            target = availsl[ind2];
+            forceSubject(source,su1);
+            unmarkSubjectAsUsed(su2);
+            fprintf(stderr,"2 >>>>> Feito\n");
+            break;
+        }
+        deleteVector(targok);
+        sourcok[ind1] = false;
+        ns--;
+    }
+
+    if (target==-1) {
+        sourcok = copyok;
+        ns = nc;
+        while(ns > 0) {
+            ind1 = getIndexNthOk(sourcok,nu,randomValue(0,ns-1));
+            source = usedsl[ind1];
+            su3.cod = chrom[source].codisc;
+            su3.part = chrom[source].partdisc;
+            fprintf(stderr,"3 >>>>> por %s/%d\n", pd->getSubjectTitle(su3.cod), su3.part);
+            linkok = testSwapExclude(usedsl,nu,su3,source,nl);
+            if (nl > 0) {
+                ind3 = getIndexNthOk(linkok,nu,randomValue(0,nl-1));
+                link = usedsl[ind3];
+                su2.cod = chrom[link].codisc;
+                su2.part = chrom[link].partdisc;
+                fprintf(stderr,"4 >>>>> se %s/%d\n", pd->getSubjectTitle(su2.cod), su2.part);
+                targok = testSwap(availsl,na,su2,nt);
+                if (nt > 0) {
+                    ind2 = getIndexNthOk(targok,na,randomValue(0,nt-1));
+                    target = availsl[ind2];
+                    forceSubject(source,su1);
+                    unmarkSubjectAsUsed(su3);
+                    forceSubject(link,su3);
+                    unmarkSubjectAsUsed(su2);
+                    fprintf(stderr,"5 >>>>> Feito\n");
+                    break;
+                }
+                deleteVector(targok);
+                linkok[ind3]=false;
+                nl--;
+            }
+            deleteVector(linkok);
+            sourcok[ind1] = false;
+            ns--;
+        }
+    }
+
+    deleteVector(targok);
+    deleteVector(sourcok);
+    deleteVector(usedsl);
+    deleteVector(availsl);
+
+    slot = target;
+
+    if (target == -1)
+        return false;
+
+    su1.cod = su2.cod;
+    su1.part = su2.part;
+
+
+    fprintf(stderr,"<<<<< Leaving swapSlot: slot=%d Result: true\n",slot);
+
+#if DEBUG_MODE == 1
+    fprintf(stderr,"<<<<< Leaving swapSlot: slot=%d Result: true\n",slot);
+#endif // DEBUG_MODE
+    return true;
 };
 void Chromosome::printAvailableProfessor(int n){
     int i;
@@ -1748,11 +2014,11 @@ void Chromosome::printProfessorSchedule(int prof){
     int * room = new int[schedsz];
 
     fprintf(logfile,"Professor %d:%s Schedule\n",prof,pd->getProfessorName(prof));
-    for (int i=0; i < schedsz; i++) {
+    for (i=0; i < schedsz; i++) {
         sched[i].cod = -1;
         room[i] = -1;
     }
-    for (int i=0; i < chromsz; i++)
+    for (i=0; i < chromsz; i++)
         if (chrom[i].tpused) {
             ok = false;
             for (j=0; j < chrom[i].nprofs; j++)
@@ -1764,9 +2030,9 @@ void Chromosome::printProfessorSchedule(int prof){
                 room[i%schedsz] = i / schedsz;
             }
         }
-    for (int i=0; i < 3; i++) {
-        for (int j=0; j < 2; j++) {
-            for (int k=0; k < 5; k++) {
+    for (i=0; i < 3; i++) {
+        for (j=0; j < 2; j++) {
+            for (k=0; k < 5; k++) {
                 p = i*10+k*2+j;
                 if (sched[p].cod == -1)
                     strcpy(aux,"-----");
@@ -1776,7 +2042,7 @@ void Chromosome::printProfessorSchedule(int prof){
                 printCentralizedString(logfile,DEFAULTSCHEDULESTRINGSIZE,aux);
             }
             fprintf(logfile,"\n");
-            for (int k=0; k < 5; k++){
+            for (k=0; k < 5; k++){
                 p = i*10+k*2+j;
                 fprintf(logfile,"|");
                 if (pd->getSubjectPartNumberofProfs(sched[p].cod, sched[p].part) == 0) {
@@ -1790,7 +2056,7 @@ void Chromosome::printProfessorSchedule(int prof){
                 }
             }
             fprintf(logfile,"|\n");
-            for (int k=0; k < 5; k++) {
+            for (k=0; k < 5; k++) {
                 p = i*10+k*2+j;
                 if (room[p] == -1)
                     strcpy(aux,"-----");
@@ -1825,9 +2091,9 @@ void Chromosome::printRoom(int n) {
     r = schedsz * n;
 
     fprintf(logfile,"Room %d Schedule - Chromossome from %d->%d\n",n,r,r+schedsz-1);
-    for (int i=0; i < 3; i++) {
-        for (int j=0; j < 2; j++) {
-            for (int k=0; k < 5; k++) {
+    for (i=0; i < 3; i++) {
+        for (j=0; j < 2; j++) {
+            for (k=0; k < 5; k++) {
                 p = r+i*10+k*2+j;
                 if (chrom[p].codisc == -1)
                     strcpy(aux,"-----");
@@ -1838,7 +2104,7 @@ void Chromosome::printRoom(int n) {
                 printCentralizedString(logfile,DEFAULTSCHEDULESTRINGSIZE,aux);
            }
             fprintf(logfile,"\n");
-            for (int k=0; k < 5; k++){
+            for (k=0; k < 5; k++){
                 p = r+i*10+k*2+j;
                 fprintf(logfile,"|");
                 if (chrom[p].nprofs == 0) {
@@ -1857,26 +2123,161 @@ void Chromosome::printRoom(int n) {
 }
 void Chromosome::print() {
 
-    int i,r;
+    int i;
 
-    fprintf(logfile,"Chromossome\n");
+    fprintf(logfile,"Chromossome: fitness=%f\n", fitness);
 
-    for (int i=0; i < chromrooms; i++)
+    for (i=0; i < chromrooms; i++)
         printRoom(i);
 //    printProfessorsSchedules();
 
-//	printf("   %f\n", fitness);
 }
 void Chromosome::printProfessorsSchedules() {
 
-    int i,r;
+    int i;
 
     fprintf(logfile,"Professors\n");
 
-    for (int i=0; i < pd->getNumberOfProfessors(); i++)
+    for (i=0; i < pd->getNumberOfProfessors(); i++)
         printProfessorSchedule(i);
 
 //	printf("   %f\n", fitness);
+}
+void Chromosome::printHTMLHeader(FILE * f) {
+
+ 	fprintf(f, "<!DOCTYPE html encoding=\\\"UTF-8\\\">\n");
+	fprintf(f, "<html>\n");
+	fprintf(f, "<head>\n");
+	fprintf(f, "<style>\n");
+	fprintf(f, "body {\n");
+	fprintf(f, "\tbackground-color: lightblue;\n");
+    fprintf(f, "}\n");
+	fprintf(f, "table {\n");
+	fprintf(f, "\tpage-break-after: always;\n");
+	fprintf(f, "\tborder: 1px solid black;\n");
+	fprintf(f, "\twidth: 100%%;\n");
+	fprintf(f, "\tfont-family: \"Times New Roman\", Times, serif;\n");
+	fprintf(f, "\tfont-size: 20px;\n");
+	fprintf(f, "}\n");
+	fprintf(f, "tbody {\n");
+	fprintf(f, "\tbackground-color: blue;\n");
+    fprintf(f, "}\n");
+	fprintf(f, "tr {\n");
+	fprintf(f, "\tbackground-color: darkgreen;\n");
+	fprintf(f, "\tcolor: white;\n");
+	fprintf(f, "\theight: 50px;\n");
+    fprintf(f, "}\n");
+	fprintf(f, "tr:nth-child(1) {\n");
+	fprintf(f, "\tbackground-color: red;\n");
+    fprintf(f, "}\n");
+	fprintf(f, "td {\n");
+	fprintf(f, "\tbackground-color: blue;\n");
+	fprintf(f, "\tcolor: white;\n");
+	fprintf(f, "\theight: 50px;\n");
+	fprintf(f, "\ttext-align: center;\n");
+    fprintf(f, "}\n");
+	fprintf(f, "</style>\n");
+	fprintf(f, "</head>\n");
+	fprintf(f, "<body>\n");
+}
+void Chromosome::hprint(FILE * f, bool ini, bool end) {
+
+    if (chromsz < 1 || chrom == NULL) {
+        fprintf(f,"Chromosome::hprint(FILE * f) >> Error: Empty Chromosome\n");
+        return;
+	};
+	if (ini)
+        printHTMLHeader(f);
+    printHTMLId(id++, f);
+    printHTMLSchedule(f);
+    if (end)
+        printHTMLFooter(f);
+    fflush(f);
+}
+void Chromosome::printHTMLId(int n, FILE * f) {
+
+	fprintf(f, "<!--Novo Horarior-->\n");
+	fprintf(f, "<id>%d</id>\n", n);
+}
+void Chromosome::printHTMLSchedule(FILE * f) {
+
+	int i;
+
+    if (chromsz < 1 || chrom == NULL) {
+        fprintf(f,"Chromosome::printHTMLSchedule(FILE * f) >> Error: Empty Chromosome\n");
+        return;
+	};
+    for(i=0; i < chromrooms; i++)
+        printHTMLRoom(i, f);
+}
+void Chromosome::printHTMLFooter(FILE * f) {
+
+	fprintf(f, "</body>\n");
+}
+void Chromosome::printHTMLRoom(int r, FILE * f) {
+
+	if (r < 0 || r >= chromrooms) {
+		fprintf(f,"Chromosome::printHTMLRoom >> Error: Invalid Room (%i)\n",r);
+		return;
+	};
+
+    int i;
+
+    fprintf(f, "\t<table>\n");
+	fprintf(f, "\t\t<thead>\n");
+	fprintf(f, "\t\t\t<tr>\n");
+	fprintf(f, "\t\t\t\t<th  colspan=\"6\">%3d</th>\n", pd->getRoomNumber(r));
+	fprintf(f, "\t\t\t</tr>\n");
+	fprintf(f, "\t\t\t<tr>\n");
+	fprintf(f, "\t\t\t\t<th></th>\n");
+	for(i=0; i < 5; i++)
+        fprintf(f, "\t\t\t\t<th>%s</th>\n", getDayName(i));
+	fprintf(f, "\t\t\t</tr>\n");
+	fprintf(f, "\t\t</thead>\n");
+	fprintf(f, "\t\t<tbody>\n");
+    for (i=0; i < pd->getNumberOfShifts(); i++)
+        printHTMLShift(r, i, f);
+	fprintf(f, "\t\t</tbody>\n");
+    fprintf(f, "\t</table>\n");
+}
+void Chromosome::printHTMLShift(int r, int s,  FILE * f) {
+
+	if (s < 0 || s >= pd->getNumberOfShifts()) {
+		fprintf(f,"Chromosome::printHTMLShift >> Error: Invalid Shift (room=%i, shift=%d)\n",r,s);
+		return;
+	};
+
+    int i;
+
+	fprintf(f, "\t\t\t<tr>\n");
+	fprintf(f, "\t\t\t\t<td  rowspan=\"%d\">%s</td>\n", pd->getShiftNumberOfPeriods(s), pd->getShiftName(s));
+	for(i=0; i < pd->getShiftNumberOfPeriods(s); i++) {
+		if (i != 0)
+            fprintf(f, "\t\t\t<tr>\n");
+        printHTMLPeriod(r, s, i, f);
+        fprintf(f, "\t\t\t</tr>\n");
+    }
+
+}
+void Chromosome::printHTMLPeriod(int r, int s, int p, FILE * f) {
+
+	if (p < 0 || p >= pd->getShiftNumberOfPeriods(s)) {
+		fprintf(f,"Chromosome::printHTMLShift >> Error: Invalid Period (room=%i, shift=%d, period=%d)\n",r,s, p);
+		return;
+	};
+
+    int i,j,k;
+
+	for(i=0; i < 5; i++) {
+        fprintf(f, "\t\t\t\t<td>");
+        k = r * schedsz + s * 10 + i * 2 + p;
+        if (chrom[k].codisc != -1) {
+            fprintf(f, "%s<br>", pd->getSubjectTitle(chrom[k].codisc), chrom[k].partdisc);
+            for(j=0; j < chrom[k].nprofs; j++)
+                fprintf(f, "%s<br>", pd->getProfessorName(chrom[k].profs[j]));
+        }
+        fprintf(f, "</td>\n");
+    }
 }
 void Chromosome::fprint(FILE * f) {
 
@@ -1885,7 +2286,7 @@ void Chromosome::fprint(FILE * f) {
 		return;
 	};
 
-	int type = NULL;
+	int type;
 	char format[10];
 	strcpy(format,getOutputFormat(type));
 	strcat(format," ");
@@ -1937,11 +2338,12 @@ bool Chromosome::crossover(Chromosome * parent1, Chromosome * parent2) {
     }
     bool ok = true;
     for (i=1; i < nsubpart; i++) {
-        su =  selecionaSubject();
-        sc = selecionaSchedule(su);
-        if (sc == -1)
-            sc = swapSchedule(su);
-        if (sc == -1) {
+        resetAvailableSubjectSlots();
+        if (getBusiestSubjectPart(su)) {
+                ok = false;
+                break;
+            };
+        if (!selecionaSlot(su,sc) && !swapSlot(su,sc)) {
             ok = false;
             break;
         };
@@ -2000,7 +2402,7 @@ void Chromosome::repair() {
         for(j=0; j < subck[i].n; j++)
             if (!subck[i].ok[j]) {
                 printf("disc %d p=%d nao existe\n",i,j);
-                subless[i];
+                subless[i] = j; // checar este comando
                 nl++;
         }
 
@@ -2012,7 +2414,10 @@ bool Chromosome::mutate(int pos) {
     su.cod = chrom[pos].codisc;
     su.part = chrom[pos].partdisc;
 
-    int sc = swapSchedule(su);
+    int sc;
+    if (su == -1)
+        return  swaptoEmptySlot(su, sc);
+    return swapSlot(su,sc);
 }
 void Chromosome::mutate(float mutationrate) {
 
@@ -2107,7 +2512,12 @@ GAPopulation::GAPopulation(int psz, float cross, float mut, FILE * f1, FILE * f2
 
     for (int i=0; i < popsz; i++) {
         pop[i] = new Chromosome(probdef,true);
+//        if (i==0) pop[i]->hprint(outfile, true, false);
+//        else if (i < popsz) pop[i]->hprint(outfile, false, false);
+//        else pop[i]->hprint(outfile, false, true);
     }
+
+    print();
 
 
 };
@@ -2119,37 +2529,31 @@ GAPopulation::~GAPopulation() {
 	if (pop != NULL) {} {
         for (int i=0; i < popsz; i++)
             delete pop[i];
-        delete [] pop;
-        pop = NULL;
+        deleteVector(pop);
 	}
 	if (sibling != NULL) {} {
         for (int i=0; i < popsz; i++)
             delete sibling[i];
-        delete [] sibling;
-        sibling = NULL;
+        deleteVector(sibling);
 	}
 	if (mutation != NULL) {} {
         for (int i=0; i < popsz; i++)
             delete mutation[i];
-        delete [] mutation;
-        mutation = NULL;
+        deleteVector(mutation);
 	}
 	if (aux != NULL) {} {
         for (int i=0; i < popsz; i++)
             delete aux[i];
-        delete [] aux;
-        aux = NULL;
+        deleteVector(aux);
 	}
 	if (roulete != NULL) {} {
-        delete [] roulete;
-        roulete = NULL;
+        deleteVector(roulete);
 	}
 	if (pair != NULL) {} {
         for (int i=0; i < popsz; i++)
             delete pair[i];
-        delete [] pair;
-        pair = NULL;
-	}
+        deleteVector(pair);
+    }
 };
 void GAPopulation::mutate() {
 
@@ -2158,7 +2562,7 @@ void GAPopulation::mutate() {
 
    if (mutation == NULL) {
         mutation = new Chromosome *[popsz];
-	for (int i=0; i < popsz; i++)
+        for (int i=0; i < popsz; i++)
             mutation[i] = new Chromosome(probdef);
 
     }
@@ -2346,7 +2750,7 @@ void GAPopulation::selectSiblings() {
     if (aux == NULL) {
         aux = new Chromosome *[popsz];
         for (int i = 0; i < popsz; i++)
-            aux[i] = new Chromosome();
+            aux[i] = new Chromosome(probdef);
     }
 
 	quickSort<Chromosome *>(sibling, 0, popsz-1, DESCENDINGORDER);
@@ -2423,6 +2827,13 @@ void GeneticAlgorithm::save(char * fname) {
 	if (!initialized())
 		return;
 
+
+};
+void GeneticAlgorithm::saveHTML(char * fname) {
+
+	if (!initialized())
+		return;
+
 	FILE * f = NULL;
 	char * fullname = NULL;
 	char * filename = NULL;
@@ -2433,6 +2844,8 @@ void GeneticAlgorithm::save(char * fname) {
 		filename = new char[100];
 		timer = time(NULL);
 		date = localtime(&timer);
+		sprintf(filename,"%s_%4d_%2d_%2d_%2d_%2d_%2d", DEFAULTOUTPUTFILE, date->tm_year+1900,
+		                    date->tm_mon+1, date->tm_mday,date->tm_hour,date->tm_min,date->tm_sec);
 	} else
 		filename = fname;
 
@@ -2441,8 +2854,8 @@ void GeneticAlgorithm::save(char * fname) {
 	if (f == NULL)
 		return;
 
-
-	genpop->fprint(f);
+    Chromosome * bc = getBestChromosome();
+	bc->hprint(0, f);
 
 	fclose(f);
 
@@ -2487,7 +2900,9 @@ float GeneticAlgorithm::nextGeneration() {
         case 0:
         default: genpop->selectSiblings();
     }
+    genpop->print();
     return genpop->averageFitness();
+
 
 };
 

@@ -26,6 +26,7 @@
 #include "BCommandLine.h"
 #include "BFile.h"
 
+
 //#define DEBUG_MODE 1
 
 inline bool randomValue(bool lower = DEFAULTBOOLEANLIMITLOWER, bool upper = DEFAULTBOOLEANLIMITUPPER)
@@ -33,7 +34,7 @@ inline bool randomValue(bool lower = DEFAULTBOOLEANLIMITLOWER, bool upper = DEFA
 inline int randomValue(int lower = DEFAULTINTLIMITLOWER, int upper = DEFAULTINTLIMITUPPER)
 //                {return min(lower + (int)((float)rand() / RAND_MAX * (upper - lower + 1)),upper);};
                 {float r = (float)rand() / RAND_MAX;
-                 return min(lower + (int)(r * (upper - lower + 1)),upper);;};
+                 return min(lower + (int)(r * (upper - lower + 1)),upper);};
 inline float randomValue(float lower= DEFAULTFLOATLIMITLOWER, float upper = DEFAULTFLOATLIMITUPPER)
                 {return  (lower + (float)rand() / RAND_MAX * (upper - lower));};
 inline char randomValue(char lower = DEFAULTCHARLIMITLOWER, char upper = DEFAULTCHARLIMITUPPER)
@@ -43,8 +44,9 @@ void printCentralizedString(FILE*, int, char *);
 void removeFromVector(int, int, int *);
 bool memberIntVector(int, int, int *);
 bool memberCharVector(char *, int, char**);
-bool includeIntVector(int &, int &, int *&, int);
+bool includeIntVector(int &, int &, int *&, int, int);
 bool includeCharVector(int &, int &, char **&, char *);
+char * getDayName(int);
 
 typedef struct {
     int crednok;
@@ -57,6 +59,7 @@ typedef struct {
     int cod;
     int np;
     int *used;
+    int *nas;
 } SubjCredit;
 typedef struct {
     int cod;
@@ -164,6 +167,11 @@ public:
                                      else return subj[s.cod].part[s.part].cred;};
     int getSemesterSlotSize(int code);
     int getRoomScheduleSize() { return schedsz;};
+    char * getShiftName(int i) { if (i < 0 || i >= nshifts || shif == NULL) return NULL;
+                                 return shif[i].name;}
+    int getNumberOfShifts() { return nshifts;}
+    int getShiftNumberOfPeriods(int i) { if (i < 0 || i >= nshifts || shif == NULL) return 0;
+                                 return shif[i].np;}
     int getSlotSize(int);
     FILE* getLogFile() { return logfile;};
     bool testAvailabilty(int&,int&,int&);
@@ -173,7 +181,7 @@ public:
 	void printSchedule(FILE*, int *);
 	void printModelRoom(int);
 	void printScheduleModel();
-   void printAllProfessorData();
+    void printAllProfessorData();
     void printProfessorData(int n);
     void printAllSemesterData();
     void printSemesterData(int n);
@@ -206,7 +214,7 @@ protected:
     FILE * logfile;
 
     bool cleanBuffer();
-    bool readInt(int &);
+    bool readInt(int &, char * name = NULL, bool = true);
     bool readFloat(float &);
     bool readString(char * &);
 
@@ -221,6 +229,7 @@ public:
 	~Chromosome();
     void printRoom(int n);
 	void print();
+	void hprint(FILE *, bool ini=true, bool end=true);
 	void fprint(FILE *);
 	///// Gets one gen from the current chromosome
 	Slot * getChromosome() { return chrom;};
@@ -258,7 +267,7 @@ protected:
 //	SemSchedule * semsched;
 	Slot *chrom;
 	FILE * logfile;
-    int selecionaSchedule(Part);
+    bool selecionaSlot(Part, int&);
     int * getAvailableSlots(Part, int &);
     int * getUsedSlots(Part, int &);
     bool testSchedule(int s, Part su);
@@ -269,7 +278,7 @@ protected:
     bool testConflict03(int, int);
     bool testSwapSchedule(int s1, Part su1, int s2, Part su2);
     void deleteChrom();
-    int swapSchedule(Part &);
+    bool swapSlot(Part &, int&);
     void forceSubject(int sc, Part su);
     void printProfessorSchedule(int prof);
     void printProfessorsSchedules();
@@ -280,6 +289,7 @@ protected:
     bool * testSwapExclude(int * slots, int n1, Part su, int ex, int &n2);
     void repair();
     int getBusiestProfessor();
+    bool getBusiestSubjectPart(Part &);
     bool markSubjectAsUsed(Part);
     bool unmarkSubjectAsUsed(Part);
     int getUnusedDisc(int n, int * used);
@@ -287,6 +297,15 @@ protected:
     void printAvailableProfessor(int);
     void printAvailableProfessorAll();
     bool testSubject(Part su);
+    void printHTMLHeader(FILE * f);
+    void printHTMLSchedule(FILE * f);
+    void printHTMLId(int, FILE * f);
+    void printHTMLFooter(FILE * f);
+    void printHTMLRoom(int r, FILE * f);
+    void printHTMLShift(int r, int s,  FILE * f);
+    void printHTMLPeriod(int r, int s, int p, FILE * f);
+    void resetAvailableSubjectSlots();
+
 };
 
 class GAPopulation {
@@ -359,6 +378,7 @@ public:
 	bool initialize(
 	);
 	void save(char * fname = NULL);
+	void saveHTML(char * fname = NULL);
 	float computeFitness();
 	float nextGeneration();
 	Chromosome * getBestChromosome() {return (genpop == NULL) ? NULL : genpop->getBestChromosome();};

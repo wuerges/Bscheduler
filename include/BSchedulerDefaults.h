@@ -47,10 +47,10 @@
 #define DEFAULTBOOLEANLIMITUPPER                    true
 #define DEFAULTCHARLIMITLOWER                   CHAR_MIN
 #define DEFAULTCHARLIMITUPPER                   CHAR_MAX
-#define DEFAULTFILENAME                    "GenAlgState"
-#define DEFAULTEXTENSIONNAME                       "gal"
-#define DEFAULTEXECUTIONLOGFILE  "GenAlgExecutionLog.log"
-#define DEFAULTOUTPUTFILE              "GenAlgResult.log"
+#define DEFAULTFILENAME                       "Schedule"
+#define DEFAULTEXTENSIONNAME                       "html"
+#define DEFAULTEXECUTIONLOGFILE       "ExecutionLog.log"
+#define DEFAULTOUTPUTFILE                 "Schedule.html"
 #define DEFAULTNAMESIZE                              128
 #define DEFAULTNUMBERSIZE                             24
 #define DEFAULTMAXNUMBEROFCLASSESBYPROFESSOR          12
@@ -58,6 +58,7 @@
 #define DEFAULMAXNUMBERPROFESSORSBYSUBJECT             3
 #define DEFAULMAXNUMBEROFCLASSESBYSUBJECT              3
 #define DEFAULMAXNUMBEROFROOMS                        10
+#define DEFAULMAXNUMBEROFSLOTSBYSUBJECT               20
 #define DEFAULTCROSSOVERSELECTION                      0
 #define DEFAULTVALUEFORFORBIDSCHEDULE                  0
 #define DEFAULTVALUEFORFORBIDSCHEDULEMARK             'X'
