@@ -1,0 +1,6 @@
+cmake_minimum_required (VERSION 2.6)
+project (BScheduler)
+add_subdirectory("ext-libs/BasicLibrary/")
+include_directories("include" "ext-libs/BasicLibrary/include")
+add_executable(BScheduler src/BScheduler.cpp src/main.cpp)
+target_link_libraries(BScheduler BasicLibrary)
