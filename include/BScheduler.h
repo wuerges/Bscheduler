@@ -149,7 +149,7 @@ public:
 	int getNumberOfProfessors() { return nprofs;};
 	int getProfessorCode(char* =NULL);
 	Part getProfessorSubject(int p, int n);
-	int * getProfessorSlotsToAvoid(int p, int &n) { n = 0; if (p < 0 || p >= nprofs) return NULL; n = prof[p].nta; return prof[p].toavoid;};
+	int * getProfessorSlotsToAvoid(int p, int &n);
 	char * getProfessorName(int = -1);
     char * getProfessorsNickName(int n, int sz, int *profs);
     int getTableSize() { return tablesz;};
@@ -227,8 +227,7 @@ public:
 
 	///// Default Destructor
 	~Chromosome();
-    void printRoom(int n);
-	void print();
+	void print(bool = false);
 	void hprint(FILE *, bool ini=true, bool end=true);
 	void fprint(FILE *);
 	///// Gets one gen from the current chromosome
@@ -294,6 +293,8 @@ protected:
     bool unmarkSubjectAsUsed(Part);
     int getUnusedDisc(int n, int * used);
     Part selecionaSubject();
+    void printRoomVerbose(int n);
+    void printRoom(int n);
     void printAvailableProfessor(int);
     void printAvailableProfessorAll();
     bool testSubject(Part su);

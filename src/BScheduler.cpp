@@ -508,6 +508,13 @@ char *  GAProblemDefinition::getProfessorsNickName(int n, int sz, int *p) {
 
    return nick;
 }
+int * GAProblemDefinition::getProfessorSlotsToAvoid(int p, int &n) {
+    n = 0;
+    if (p < 0 || p >= nprofs)
+        return NULL;
+    n = prof[p].nta;
+    return prof[p].toavoid;
+}
 int GAProblemDefinition::getSubjectCode(char *namep) {
     if (namep == NULL) {
         fprintf(stderr,"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -1067,8 +1074,6 @@ bool Chromosome::fillChromossome() {
         }
     }
 
-    printf("Chromosome ok!\n");
-
 #if DEBUG_MODE == 1
     fprintf(logfile,"<<<<< Leaving fillChromossome: Result: true\n");
 #endif // DEBUG_MODE
@@ -1151,11 +1156,11 @@ bool  Chromosome::getBusiestSubjectPart(Part &sp){
     for(i=0; i < pd->getNumberSubjects(); i++)
         for (j=0; j < scred[i].np; j++){
             if (!scred[i].used[j]) {
-                printf("disc=%d part=%d slots=%d\n", scred[i].cod, j, scred[i].nas[j]);
+//                printf("disc=%d part=%d slots=%d\n", scred[i].cod, j, scred[i].nas[j]);
                if (scred[i].nas[j] == 0)
-        {          printf("não achou slot para disc=%d part=%d\n", scred[i].cod, j);
+//        {          printf("não achou slot para disc=%d part=%d\n", scred[i].cod, j);
                    return  false;
-                   }
+//                   }
                 if (minslots >= scred[i].nas[j]) {
                     if (minslots > scred[i].nas[j])
                         k=0;
@@ -1175,7 +1180,6 @@ bool  Chromosome::getBusiestSubjectPart(Part &sp){
     } else
         return false;
 
-    fprintf(stderr,"<<<<< Leaving getBusiestSubjectPart: cod=%d part=%d Result:true\n", sp.cod, sp.part);
 #if DEBUG_MODE == 1
     fprintf(stderr,"<<<<< Leaving getBusiestSubjectPart: cod=%d part=%d Result:true\n", sp.cod, sp.part);
 #endif // DEBUG_MODE
@@ -1537,6 +1541,7 @@ bool Chromosome::testFourPeriods(int slot, int np, int * profs){
 #endif // DEBUG_MODE
     return true;
 }
+
 bool Chromosome::testProfessorPreferences(int slot, int np, int * profs){
 #if DEBUG_MODE == 1
     fprintf(stderr,">>>>> Entering testProfessorPreferences: Parameters: slot = %d np=%d profs = %p\n", slot, np, profs);
@@ -1674,7 +1679,6 @@ bool Chromosome::selecionaSlot(Part su, int &slot){
     if (!ok) return false;;
 
 
-    fprintf(stderr,"<<<<< Leaving selecionaSlot: slot=%d Result: true\n",slot);
 #if DEBUG_MODE == 1
     fprintf(stderr,"<<<<< Leaving selecionaSlot: slot=%d Result: true\n",slot);
 #endif // DEBUG_MODE
@@ -1732,20 +1736,18 @@ bool Chromosome::swapSlot(Part &su1, int &slot){
 #endif // DEBUG_MODE
 
 
-    fprintf(stderr,">>>>> trocando %s/%d\n", pd->getSubjectTitle(su1.cod), su1.part);
-
     Part su2,su3;
 
     int i, nu,ns,na,nt,nc,nl;
     int * usedsl = getUsedSlots(su1, nu);
 
-    for (int x=0; x < nu; x++)
-        printf("usedsl[%d] = %d\n", x, usedsl[x]);
+//    for (int x=0; x < nu; x++)
+//        printf("usedsl[%d] = %d\n", x, usedsl[x]);
 
     bool * sourcok = testSwap(usedsl,nu,su1,ns);
 
-    for (int x=0; x < nu; x++)
-        printf("sourcok[%d] = %d\n", x, sourcok[x]);
+//    for (int x=0; x < nu; x++)
+//        printf("sourcok[%d] = %d\n", x, sourcok[x]);
 
     if (ns == 0) {
         deleteVector(usedsl);
@@ -1763,9 +1765,9 @@ bool Chromosome::swapSlot(Part &su1, int &slot){
 
     int * availsl = getAvailableSlots(su1, na);
 
-    for (int x=0; x < na; x++)
-        printf("availsl[%d] = %d\n", x, availsl[x]);
-
+//    for (int x=0; x < na; x++)
+//        printf("availsl[%d] = %d\n", x, availsl[x]);
+//
     int ind1, ind2, ind3;
 
     int source, target, link;
@@ -1776,14 +1778,15 @@ bool Chromosome::swapSlot(Part &su1, int &slot){
         source = usedsl[ind1];
         su2.cod = chrom[source].codisc;
         su2.part = chrom[source].partdisc;
-        fprintf(stderr,"1 >>>>> por %s/%d\n", pd->getSubjectTitle(su2.cod), su2.part);
         targok = testSwap(availsl,na,su2,nt);
         if (nt > 0) {
             ind2 = getIndexNthOk(targok,na,randomValue(0,nt-1));
             target = availsl[ind2];
             forceSubject(source,su1);
             unmarkSubjectAsUsed(su2);
-            fprintf(stderr,"2 >>>>> Feito\n");
+//            fprintf(stderr,">>>>> trocou %s/%d slot %d por %s/%d slot %d\n",
+//                pd->getSubjectTitle(su2.cod), su2.part, target,
+//                pd->getSubjectTitle(su1.cod), su1.part, source);
             break;
         }
         deleteVector(targok);
@@ -1799,14 +1802,12 @@ bool Chromosome::swapSlot(Part &su1, int &slot){
             source = usedsl[ind1];
             su3.cod = chrom[source].codisc;
             su3.part = chrom[source].partdisc;
-            fprintf(stderr,"3 >>>>> por %s/%d\n", pd->getSubjectTitle(su3.cod), su3.part);
             linkok = testSwapExclude(usedsl,nu,su3,source,nl);
             if (nl > 0) {
                 ind3 = getIndexNthOk(linkok,nu,randomValue(0,nl-1));
                 link = usedsl[ind3];
                 su2.cod = chrom[link].codisc;
                 su2.part = chrom[link].partdisc;
-                fprintf(stderr,"4 >>>>> se %s/%d\n", pd->getSubjectTitle(su2.cod), su2.part);
                 targok = testSwap(availsl,na,su2,nt);
                 if (nt > 0) {
                     ind2 = getIndexNthOk(targok,na,randomValue(0,nt-1));
@@ -1815,7 +1816,10 @@ bool Chromosome::swapSlot(Part &su1, int &slot){
                     unmarkSubjectAsUsed(su3);
                     forceSubject(link,su3);
                     unmarkSubjectAsUsed(su2);
-                    fprintf(stderr,"5 >>>>> Feito\n");
+//                    fprintf(stderr,">>>>> trocou %s/%d slot %d por %s/%d slot %d e %s/%d slot %d\n",
+//                        pd->getSubjectTitle(su2.cod), su2.part, target,
+//                        pd->getSubjectTitle(su3.cod), su3.part, link,
+//                        pd->getSubjectTitle(su1.cod), su1.part, source);
                     break;
                 }
                 deleteVector(targok);
@@ -1841,131 +1845,6 @@ bool Chromosome::swapSlot(Part &su1, int &slot){
     su1.cod = su2.cod;
     su1.part = su2.part;
 
-
-    fprintf(stderr,"<<<<< Leaving swapSlot: slot=%d Result: true\n",slot);
-
-#if DEBUG_MODE == 1
-    fprintf(stderr,"<<<<< Leaving swapSlot: slot=%d Result: true\n",slot);
-#endif // DEBUG_MODE
-    return true;
-};
-bool Chromosome::swaptoEmptySlot(Part &su1, int &slot){
-#if DEBUG_MODE == 1
-    fprintf(stderr,">>>>> Entering swaptoEmptySlot: Parameters: cod=%d part = %d\n", su1.cod, su1.part);
-#endif // DEBUG_MODE
-
-
-    fprintf(stderr,">>>>> trocando por slot vazio\n");
-
-    Part su2,su3;
-
-    int i, nu,ns,na,nt,nc,nl;
-    int * usedsl = getUsedSlots(su1, nu);
-
-    for (int x=0; x < nu; x++)
-        printf("usedsl[%d] = %d\n", x, usedsl[x]);
-
-    bool * sourcok = testSwap(usedsl,nu,su1,ns);
-
-    for (int x=0; x < nu; x++)
-        printf("sourcok[%d] = %d\n", x, sourcok[x]);
-
-    if (ns == 0) {
-        deleteVector(usedsl);
-        deleteVector(sourcok);
-        return false;
-    }
-
-    nc = ns;
-    bool * copyok = new bool [nu];
-    for (i=0;i<nu;i++)
-        copyok[i]=sourcok[i];
-
-    bool * targok = NULL,
-         * linkok = NULL;
-
-    int * availsl = getAvailableSlots(su1, na);
-
-    for (int x=0; x < na; x++)
-        printf("availsl[%d] = %d\n", x, availsl[x]);
-
-    int ind1, ind2, ind3;
-
-    int source, target, link;
-    target = -1;
-
-    while(ns > 0) {
-        ind1 = getIndexNthOk(sourcok,nu,randomValue(0,ns-1));
-        source = usedsl[ind1];
-        su2.cod = chrom[source].codisc;
-        su2.part = chrom[source].partdisc;
-        fprintf(stderr,"1 >>>>> por %s/%d\n", pd->getSubjectTitle(su2.cod), su2.part);
-        targok = testSwap(availsl,na,su2,nt);
-        if (nt > 0) {
-            ind2 = getIndexNthOk(targok,na,randomValue(0,nt-1));
-            target = availsl[ind2];
-            forceSubject(source,su1);
-            unmarkSubjectAsUsed(su2);
-            fprintf(stderr,"2 >>>>> Feito\n");
-            break;
-        }
-        deleteVector(targok);
-        sourcok[ind1] = false;
-        ns--;
-    }
-
-    if (target==-1) {
-        sourcok = copyok;
-        ns = nc;
-        while(ns > 0) {
-            ind1 = getIndexNthOk(sourcok,nu,randomValue(0,ns-1));
-            source = usedsl[ind1];
-            su3.cod = chrom[source].codisc;
-            su3.part = chrom[source].partdisc;
-            fprintf(stderr,"3 >>>>> por %s/%d\n", pd->getSubjectTitle(su3.cod), su3.part);
-            linkok = testSwapExclude(usedsl,nu,su3,source,nl);
-            if (nl > 0) {
-                ind3 = getIndexNthOk(linkok,nu,randomValue(0,nl-1));
-                link = usedsl[ind3];
-                su2.cod = chrom[link].codisc;
-                su2.part = chrom[link].partdisc;
-                fprintf(stderr,"4 >>>>> se %s/%d\n", pd->getSubjectTitle(su2.cod), su2.part);
-                targok = testSwap(availsl,na,su2,nt);
-                if (nt > 0) {
-                    ind2 = getIndexNthOk(targok,na,randomValue(0,nt-1));
-                    target = availsl[ind2];
-                    forceSubject(source,su1);
-                    unmarkSubjectAsUsed(su3);
-                    forceSubject(link,su3);
-                    unmarkSubjectAsUsed(su2);
-                    fprintf(stderr,"5 >>>>> Feito\n");
-                    break;
-                }
-                deleteVector(targok);
-                linkok[ind3]=false;
-                nl--;
-            }
-            deleteVector(linkok);
-            sourcok[ind1] = false;
-            ns--;
-        }
-    }
-
-    deleteVector(targok);
-    deleteVector(sourcok);
-    deleteVector(usedsl);
-    deleteVector(availsl);
-
-    slot = target;
-
-    if (target == -1)
-        return false;
-
-    su1.cod = su2.cod;
-    su1.part = su2.part;
-
-
-    fprintf(stderr,"<<<<< Leaving swapSlot: slot=%d Result: true\n",slot);
 
 #if DEBUG_MODE == 1
     fprintf(stderr,"<<<<< Leaving swapSlot: slot=%d Result: true\n",slot);
@@ -2071,22 +1950,22 @@ void Chromosome::printProfessorSchedule(int prof){
     }
     };
 
-void Chromosome::printRoom(int n) {
+void Chromosome::printRoomVerbose(int n) {
 
 	if (chromsz < 1 || chrom == NULL) {
-		printf("Chromosome::print >> Error: Empty Chromosome\n");
+		printf("Chromosome::printRoomVerbose >> Error: Empty Chromosome\n");
 		return;
 	};
 
 	if (n < 0 || n >= chromrooms) {
-		printf("Chromosome::print >> Error: Invalid Chromosome Room\n");
+		printf("Chromosome::printRoomVerbose >> Error: Invalid Chromosome Room\n");
 		return;
 	};
 
 	char aux[DEFAULTNAMESIZE];
 	char * paux;
 
-    int i,j,k,p,r;
+    int i,j,k,p,r,m;
 
     r = schedsz * n;
 
@@ -2100,16 +1979,15 @@ void Chromosome::printRoom(int n) {
                 else
                     sprintf(aux,"%s/%d", pd->getSubjectTitle(chrom[p].codisc), chrom[p].partdisc);
                 fprintf(logfile,"|");
-
                 printCentralizedString(logfile,DEFAULTSCHEDULESTRINGSIZE,aux);
-           }
+            }
             fprintf(logfile,"\n");
             for (k=0; k < 5; k++){
                 p = r+i*10+k*2+j;
                 fprintf(logfile,"|");
                 if (chrom[p].nprofs == 0) {
-                     strcpy(aux,"-----");
-                     printCentralizedString(logfile,DEFAULTSCHEDULESTRINGSIZE,aux);
+                    strcpy(aux,"-----");
+                    printCentralizedString(logfile,DEFAULTSCHEDULESTRINGSIZE,aux);
                 } else {
                     paux = pd->getProfessorsNickName(chrom[p].nprofs, 13, chrom[p].profs);
                     printCentralizedString(logfile,DEFAULTSCHEDULESTRINGSIZE, paux);
@@ -2117,18 +1995,60 @@ void Chromosome::printRoom(int n) {
                 }
             }
             fprintf(logfile,"|\n");
-       }
+        }
         fprintf(logfile,"\n");
     }
 }
-void Chromosome::print() {
+void Chromosome::printRoom(int n) {
+
+	if (chromsz < 1 || chrom == NULL) {
+		printf("Chromosome::printRoom >> Error: Empty Chromosome\n");
+		return;
+	};
+
+	if (n < 0 || n >= chromrooms) {
+		printf("Chromosome::printRoom >> Error: Invalid Chromosome Room\n");
+		return;
+	};
+
+    int i,j,k,p,r,m;
+
+    r = schedsz * n;
+
+    for (i=0; i < 3; i++) {
+        for (j=0; j < 2; j++) {
+            for (k=0; k < 5; k++) {
+                p = r+i*10+k*2+j;
+                if (chrom[p].codisc == -1)
+                    fprintf(logfile, "--");
+                else
+                    fprintf(logfile, "%02d", chrom[p].codisc);
+                if (chrom[p].nprofs == 0)
+                    fprintf(logfile, "/--");
+                else {
+                    for (m=0; m < chrom[p].nprofs; m++)
+                        fprintf(logfile, "/%02d", chrom[p].profs[m]);
+                }
+                fprintf(logfile,"|");
+            }
+            fprintf(logfile,"#");
+       }
+        fprintf(logfile,"@");
+    }
+    fprintf(logfile,"\n");
+
+}
+void Chromosome::print(bool verbose) {
 
     int i;
 
-    fprintf(logfile,"Chromossome: fitness=%f\n", fitness);
+    if (verbose) fprintf(logfile,"Chromossome: fitness=%f\n", fitness);
 
     for (i=0; i < chromrooms; i++)
         printRoom(i);
+    if (!verbose)
+        fprintf(logfile,":%f \n", fitness);
+
 //    printProfessorsSchedules();
 
 }
@@ -2223,15 +2143,16 @@ void Chromosome::printHTMLRoom(int r, FILE * f) {
 
     int i;
 
+    fprintf(f, "\t<room>\n");
     fprintf(f, "\t<table>\n");
 	fprintf(f, "\t\t<thead>\n");
 	fprintf(f, "\t\t\t<tr>\n");
-	fprintf(f, "\t\t\t\t<th  colspan=\"6\">%3d</th>\n", pd->getRoomNumber(r));
+	fprintf(f, "\t\t\t\t<th  colspan=\"6\"><roomnumber>%3d</roomnumber></th>\n", pd->getRoomNumber(r));
 	fprintf(f, "\t\t\t</tr>\n");
 	fprintf(f, "\t\t\t<tr>\n");
 	fprintf(f, "\t\t\t\t<th></th>\n");
 	for(i=0; i < 5; i++)
-        fprintf(f, "\t\t\t\t<th>%s</th>\n", getDayName(i));
+        fprintf(f, "\t\t\t\t<th><day>%s</day></th>\n", getDayName(i));
 	fprintf(f, "\t\t\t</tr>\n");
 	fprintf(f, "\t\t</thead>\n");
 	fprintf(f, "\t\t<tbody>\n");
@@ -2239,6 +2160,7 @@ void Chromosome::printHTMLRoom(int r, FILE * f) {
         printHTMLShift(r, i, f);
 	fprintf(f, "\t\t</tbody>\n");
     fprintf(f, "\t</table>\n");
+    fprintf(f, "\t</room>\n");
 }
 void Chromosome::printHTMLShift(int r, int s,  FILE * f) {
 
@@ -2250,7 +2172,7 @@ void Chromosome::printHTMLShift(int r, int s,  FILE * f) {
     int i;
 
 	fprintf(f, "\t\t\t<tr>\n");
-	fprintf(f, "\t\t\t\t<td  rowspan=\"%d\">%s</td>\n", pd->getShiftNumberOfPeriods(s), pd->getShiftName(s));
+	fprintf(f, "\t\t\t\t<td  rowspan=\"%d\"><shift>%s</shift></td>\n", pd->getShiftNumberOfPeriods(s), pd->getShiftName(s));
 	for(i=0; i < pd->getShiftNumberOfPeriods(s); i++) {
 		if (i != 0)
             fprintf(f, "\t\t\t<tr>\n");
@@ -2272,9 +2194,9 @@ void Chromosome::printHTMLPeriod(int r, int s, int p, FILE * f) {
         fprintf(f, "\t\t\t\t<td>");
         k = r * schedsz + s * 10 + i * 2 + p;
         if (chrom[k].codisc != -1) {
-            fprintf(f, "%s<br>", pd->getSubjectTitle(chrom[k].codisc), chrom[k].partdisc);
+            fprintf(f, "<subject>%s</subject><br>", pd->getSubjectTitle(chrom[k].codisc), chrom[k].partdisc);
             for(j=0; j < chrom[k].nprofs; j++)
-                fprintf(f, "%s<br>", pd->getProfessorName(chrom[k].profs[j]));
+                fprintf(f, "<professor>%s</professor><br>", pd->getProfessorName(chrom[k].profs[j]));
         }
         fprintf(f, "</td>\n");
     }
@@ -2297,6 +2219,7 @@ void Chromosome::fprint(FILE * f) {
 	fprintf(f, "   %f\n", fitness);
 }
 bool Chromosome::crossover(Chromosome * parent1, Chromosome * parent2) {
+
 
 	if (chrom == NULL || parent1 == NULL || parent2 == NULL)
 		return false;
@@ -2374,8 +2297,6 @@ void Chromosome::repair() {
     int * subplus = new int [nprt];
     int * subless = new int [nprt];
 
-    print();
-
     for(i=0; i < n; i++) {
         subck[i].n = pd->getSubjectNumberOfDiscParts(i);
         subck[i].ok = new bool[subck[i].n];
@@ -2414,19 +2335,35 @@ bool Chromosome::mutate(int pos) {
     su.cod = chrom[pos].codisc;
     su.part = chrom[pos].partdisc;
 
-    int sc;
-    if (su == -1)
-        return  swaptoEmptySlot(su, sc);
-    return swapSlot(su,sc);
+
+    int j, sc;
+    if (su.cod == -1)
+    return false;
+
+    resetAvailableSubjectSlots();
+    if (swapSlot(su,sc)) {
+        if(chrom[sc].tpused)
+            printf("---------- Unexpected error -----------\n");
+        chrom[sc].codisc = su.cod;
+        chrom[sc].partdisc = su.part;
+        chrom[sc].tpused = true;
+        chrom[sc].nprofs = pd->getSubjectPartNumberofProfs(su.cod, su.part);
+        for(j=0; j < chrom[sc].nprofs; j++)
+            chrom[sc].profs[j] = pd->getSubjectPartProf(su.cod, su.part, j);
+        markSubjectAsUsed(su);
+       return true;
+  };
+
+    return false;
 }
 void Chromosome::mutate(float mutationrate) {
 
-    if (logfile != NULL) {
-        fprintf(logfile,">>> void Chromosome::mutate(float mutationrate)\n");
-        fprintf(logfile,">>> this=%p mutationrate=%f\n",this,mutationrate);
-        fprintf(logfile,">>> ");
-        fprintf(logfile,"fitness = %f\n", fitness);
-   }
+//    if (logfile != NULL) {
+//        fprintf(logfile,">>> void Chromosome::mutate(float mutationrate)\n");
+//        fprintf(logfile,">>> this=%p mutationrate=%f\n",this,mutationrate);
+//        fprintf(logfile,">>> ");
+//        fprintf(logfile,"fitness = %f\n", fitness);
+//   }
 
 	if (chrom == NULL)
 		return;
@@ -2442,11 +2379,11 @@ void Chromosome::mutate(float mutationrate) {
     if (nmut > 0)
         computeFitness();
 
-    if (logfile != NULL) {
-        fprintf(logfile,"<<< ");
-        fprintf(logfile,"fitness = %f\n", fitness);
-        fprintf(logfile,"<<< void Chromosome::mutate(float mutationrate)\n");
-  }
+//    if (logfile != NULL) {
+//        fprintf(logfile,"<<< ");
+//        fprintf(logfile,"fitness = %f\n", fitness);
+//        fprintf(logfile,"<<< void Chromosome::mutate(float mutationrate)\n");
+//  }
   }
 Chromosome * Chromosome::clone() {
     Chromosome * x = new Chromosome(pd);
@@ -2459,34 +2396,34 @@ void Chromosome::copy(Chromosome  c) {
 		return;
 
 	for (int i=0; i < chromsz; i++)
-		chrom[i] =  c.chrom[i];
+        copySlot(chrom[i], c.chrom[i]);
 
 	fitness = c.fitness;
 
 }
 void Chromosome::copy(Chromosome * c) {
 
-    if (logfile != NULL) {
-        fprintf(logfile,">>> void Chromosome::copy(Chromosome * c)\n");
-        fprintf(logfile,">>> this=%p c=%p\n",this,c);
-    }
+//    if (logfile != NULL) {
+//        fprintf(logfile,">>> void Chromosome::copy(Chromosome * c)\n");
+//        fprintf(logfile,">>> this=%p c=%p\n",this,c);
+//    }
 
 	if (chromsz == 0)
 		return;
 
 	for (int i=0; i < chromsz; i++)
-		chrom[i] =  c->chrom[i];
+        copySlot(chrom[i], c->chrom[i]);
 
 	fitness = c->fitness;
 
 };
 bool Chromosome::sameElements(Chromosome * c) {
 
-    if (logfile != NULL) {
-        fprintf(logfile,">>> void Chromosome::sameElements(Chromosome * c)\n");
-        fprintf(logfile,">>> this=%p c=%p\n",this,c);
-    }
-
+//    if (logfile != NULL) {
+//        fprintf(logfile,">>> void Chromosome::sameElements(Chromosome * c)\n");
+//        fprintf(logfile,">>> this=%p c=%p\n",this,c);
+//    }
+//
 	if (chromsz == 0)
 		return false;
 
@@ -2515,10 +2452,8 @@ GAPopulation::GAPopulation(int psz, float cross, float mut, FILE * f1, FILE * f2
 //        if (i==0) pop[i]->hprint(outfile, true, false);
 //        else if (i < popsz) pop[i]->hprint(outfile, false, false);
 //        else pop[i]->hprint(outfile, false, true);
+        pop[i]->computeFitness();
     }
-
-    print();
-
 
 };
 GAPopulation::~GAPopulation() {
@@ -2571,6 +2506,8 @@ void GAPopulation::mutate() {
 		mutation[i]->copy(pop[i]);
 		mutation[i]->mutate(mutationrate);
 		mutation[i]->computeFitness();
+//        pop[i]->print();
+//		mutation[i]->print();
 	}
 };
 void GAPopulation::print() {
@@ -2702,6 +2639,10 @@ void GAPopulation::crossover() {
             if (!sibling[i]->crossover(pop[pair[i][1]],pop[pair[i][0]]))
                 sibling[i]->fillChromossome();
 		sibling[i]->computeFitness();
+//		pop[pair[i][0]]->print();
+//		pop[pair[i][1]]->print();
+//        sibling[i]->print();
+
 	}
 };
 
@@ -2835,7 +2776,6 @@ void GeneticAlgorithm::saveHTML(char * fname) {
 		return;
 
 	FILE * f = NULL;
-	char * fullname = NULL;
 	char * filename = NULL;
 	time_t timer;
 	struct tm * date;
@@ -2849,13 +2789,13 @@ void GeneticAlgorithm::saveHTML(char * fname) {
 	} else
 		filename = fname;
 
-	f = fopen(fullname, "w");
+	f = fopen(filename, "w");
 
 	if (f == NULL)
 		return;
 
     Chromosome * bc = getBestChromosome();
-	bc->hprint(0, f);
+	bc->hprint(f);
 
 	fclose(f);
 
@@ -2900,7 +2840,7 @@ float GeneticAlgorithm::nextGeneration() {
         case 0:
         default: genpop->selectSiblings();
     }
-    genpop->print();
+    //genpop->print();
     return genpop->averageFitness();
 
 
@@ -2940,9 +2880,9 @@ float GeneticAlgorithm::runForNGenerations(int ng) {
         if (avgfit > oldfit)
             oldfit = avgfit;
         printf("----- generations = %d --  avg fitness = %f ----\n", n,  avgfit);
-        if (logfile)
-            fprintf(logfile,"%d %f\n", n,  avgfit);
-
+//        if (logfile)
+//            fprintf(logfile,"%d %f\n", n,  avgfit);
+//
         n++;
     }
 
@@ -2966,8 +2906,8 @@ float GeneticAlgorithm::runTillNoImprovement(int nnip, int ng) {
         } else
             ni++;
         printf("----- generations = %d -- last improvement = %d -- avg fitness = %f ----\n", n, n - ni, avgfit);
-        if (logfile)
-            fprintf(logfile,"%d %f\n", n,  avgfit);
+//        if (logfile)
+//            fprintf(logfile,"%d %f\n", n,  avgfit);
         n++;
     }
 

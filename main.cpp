@@ -145,14 +145,9 @@ int main(int argc, char ** argv) {
         bestfit = genalg->runForNGenerations(maxgen);
     printf("\n\nBest fitness = %f\n", bestfit);
 
-    genalg->getBestChromosome()->print();
-    genalg->print();
-
-	genalg->save();
+    genalg->saveHTML();
 
 	delete genalg;
-
-	getchar();
 
 	return 0;
 }
