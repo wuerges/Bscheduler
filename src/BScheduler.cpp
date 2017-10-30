@@ -724,7 +724,7 @@ bool GAProblemDefinition::read() {
         schedsz += shif[i].np;
         shif[i].per = new Period[shif[i].np];
         for(j=0; j <  shif[i].np; j++) {
-            sprintf(error, "Periods %d size %d", i);
+            sprintf(error, "Periods %d size", i);
             readInt(shif[i].per[j].sz, error);
             sprintf(error, "Periods %d number of Slots", i);
             readInt(shif[i].per[j].np, error);
@@ -2194,7 +2194,7 @@ void Chromosome::printHTMLPeriod(int r, int s, int p, FILE * f) {
         fprintf(f, "\t\t\t\t<td>");
         k = r * schedsz + s * 10 + i * 2 + p;
         if (chrom[k].codisc != -1) {
-            fprintf(f, "<subject>%s</subject><br>", pd->getSubjectTitle(chrom[k].codisc), chrom[k].partdisc);
+            fprintf(f, "<subject>%s</subject><br>", pd->getSubjectTitle(chrom[k].codisc));
             for(j=0; j < chrom[k].nprofs; j++)
                 fprintf(f, "<professor>%s</professor><br>", pd->getProfessorName(chrom[k].profs[j]));
         }
