@@ -1,0 +1,3 @@
+[submodule "ext-libs/BasicLibrary"]
+	path = ext-libs/BasicLibrary
+	url = git@github.com:wuerges/BasicLibrary.git
