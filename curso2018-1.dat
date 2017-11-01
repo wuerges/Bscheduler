@@ -49,13 +49,14 @@ Andressa  5 00 02 04 06 08
 %           Numero de horarios preferidos
 %           Para cada Horário
 %                Número do horario
-10
+11
 V1 1 101  6 10 11 14 15 18 19 0
 V3 1 102  10 00 01 06 07 12 13 14 15 18 19 0
 M5 1 103 10 00 01 02 03 04 05 06 07 08 09 0
 M7 1 104 10 00 01 02 03 04 05 06 07 08 09 0
 N2 1 105  4 26 27 28 29 0
-N4 1 106  6 22 23 24 25 26 27 0
+N4 1 106  4 22 23 24 25 0
+N4A 1 106  2 26 27 0
 N6 1 107  4 22 23 27 28 0
 N8 1 108  6 20 21 24 25 28 29 0
 N10 1 110 10 20 21 22 23 24 25 26 27 28 29 0
@@ -78,7 +79,7 @@ Alg   4  N1 2 2 1 Priscila 2 1 Priscila
 EDI   4  N2 2 2 1 Doglas 2 1 Doglas
 SD    4  N2 2 2 1 Emilio 2 1 Emilio
 BDI   4  N4 2 2 1 Denio 2 1 Denio
-ProgII 4 N4 2 2 2 Andressa Jorge 2 2 Andressa Jorge
+ProgII 4 N4A 2 2 2 Andressa Jorge 2 2 Andressa Jorge
 OC    4  N4 2 2 1 Padilha  2 1 Padilha 
 ESII  4  N6 2 2 1 Graziela 2 1 Graziela
 LF    4  N6 2 2 1 Braulio 2 1 Braulio
