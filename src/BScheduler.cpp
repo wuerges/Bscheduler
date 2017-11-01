@@ -843,6 +843,9 @@ bool GAProblemDefinition::read() {
     weights = new float[nw];
     for (i=0; i < nw; i++)
         readFloat(weights[i]);
+    pref3by2 = false;
+    if (weights[2] != 0)
+        pref3by2 = true;
 
     maxweights = nsubpart/2*weights[0];
     for(i=0; i< nprofs; i++)
@@ -856,13 +859,23 @@ bool GAProblemDefinition::read() {
 
     sched = new Slot[tablesz];
 
-    for(i=0; i <  tablesz; i++) {
-        sched[i].tpused = false;
-        sched[i].sz = 0;
-        sched[i].codisc = -1;
-        sched[i].partdisc = 0;
-        sched[i].nprofs=0;
-        sched[i].profs = new int [DEFAULMAXNUMBERPROFESSORSBYSUBJECT];
+    int d, p;
+    j=0;
+    for (r =0; r < nrooms; r++) {
+        for(t=0; t < nshifts; t++) {
+            for (p=0; p < shif[t].np; p++) {
+                j=r*schedsz+t*shif[t].np*shif[t].per[p].np+p;
+                for (i=0; i < shif[t].per[p].np; i++) {
+                    sched[j].tpused = false;
+                    sched[j].sz = shif[t].per[p].sz;
+                    sched[j].codisc = -1;
+                    sched[j].partdisc = 0;
+                    sched[j].nprofs=0;
+                    sched[j].profs = new int [DEFAULMAXNUMBERPROFESSORSBYSUBJECT];
+                    j+=shif[t].np;
+                 }
+            }
+        }
     }
    for(i=0; i <  nshifts; i++)
         for(j=0; j <  shif[i].np; j++)
@@ -1327,7 +1340,7 @@ float Chromosome::computeFitness(){
                 nw0++;
             if (!testProfessorPreferences(i,chrom[i].nprofs, chrom[i].profs))
                 nw1++;
-            if (!testSubjectSize(i,chrom[i].codisc, chrom[i].partdisc))
+            if (pd->getPermitionPref3By2() && !testSubjectSize(i,chrom[i].codisc, chrom[i].partdisc))
                 nw2++;
         }
 
@@ -1381,11 +1394,21 @@ int * Chromosome::getAvailableSlots(Part su, int &ns){
         sched[i] = pd->getSemesterRoomShedule(s,i);
  //       printIntVector("Schedule ", sched[i],schedsz);
         for (j=0; j < schedsz; j++)
-            if ((sched[i][j] == DEFAULTVALUEFORAVOIDSCHEDULE ||
-                 sched[i][j] == DEFAULTVALUEFORNEUTRALSCHEDULE ||
-                 sched[i][j] == DEFAULTVALUEFORPREFEREDSCHEDULE) &&
-                 !chrom[r*schedsz+j ].tpused)
-                 aux[ns++] = r*schedsz+j;
+            if (pd->getPermitionPref3By2()) {
+                if ((sched[i][j] == DEFAULTVALUEFORAVOIDSCHEDULE ||
+                    sched[i][j] == DEFAULTVALUEFORNEUTRALSCHEDULE ||
+                    sched[i][j] == DEFAULTVALUEFORPREFEREDSCHEDULE) &&
+                    !chrom[r*schedsz+j ].tpused)
+                    aux[ns++] = r*schedsz+j;
+            } else {
+                 if (pd->getSlotSize(r*schedsz+j) == c &&
+                    (sched[i][j] == DEFAULTVALUEFORAVOIDSCHEDULE ||
+                    sched[i][j] == DEFAULTVALUEFORNEUTRALSCHEDULE ||
+                    sched[i][j] == DEFAULTVALUEFORPREFEREDSCHEDULE) &&
+                    !chrom[r*schedsz+j ].tpused)
+                    aux[ns++] = r*schedsz+j;
+            }
+
     }
     deleteVector(sched);
 

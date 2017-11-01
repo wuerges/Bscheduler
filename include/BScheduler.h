@@ -189,7 +189,9 @@ public:
     void printSubjectData(int n);
     void printMainDefinition();
     void printWeights();
+    bool getPermitionPref3By2() { return pref3by2;};
 protected:
+    bool pref3by2;
     int nline;
     int nchar;
     int tablesz;
