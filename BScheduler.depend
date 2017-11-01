@@ -60,7 +60,7 @@
 1504736491 source:v:\home\dropbox\profissional\software\pessoal\windows\geneticalgorithms\bscheduler\src\bscheduler.cpp
 	"BScheduler.h"
 
-1509051469 source:/home/josebins/Programas/Bscheduler/main.cpp
+1509052132 source:/home/josebins/Programas/Bscheduler/main.cpp
 	"BScheduler.h"
 
 1509044737 /home/josebins/Programas/Bscheduler/include/BScheduler.h
@@ -78,7 +78,7 @@
 	<time.h>
 	<stdio.h>
 
-1507064171 /home/josebins/Programas/BasicLibrary/include/BCommandLine.h
+1509390556 /home/josebins/Programas/BasicLibrary/include/BCommandLine.h
 	<string.h>
 	<ctype.h>
 	<stdlib.h>
